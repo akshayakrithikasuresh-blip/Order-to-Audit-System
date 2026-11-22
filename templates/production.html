@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Production Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 30px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 850px;
+            margin: auto;
+        }
+
+        h2 {
+            color: #263b5e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #263b5e;
+            color: white;
+        }
+
+        input, select, textarea {
+            padding: 9px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #263b5e;
+            color: white;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1b2c47;
+        }
+
+        a {
+            color: #2456a6;
+        }
+
+        .message {
+            padding: 12px;
+            background: #eeeeee;
+            border-radius: 5px;
+            margin-bottom: 12px;
+        }
+
+        .form-section {
+            margin-top: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Production Management</h2>
+
+    <p>View products, BOM details and record production.</p>
+
+    <!-- Success and Error Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+
+    <!-- Product Details -->
+    <h2>Available Products</h2>
+
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Pack Size</th>
+            <th>BOM</th>
+            <th>Expected Output</th>
+        </tr>
+
+        {% for product in products %}
+        <tr>
+            <td>{{ product.product_name }}</td>
+            <td>{{ product.sku }}</td>
+            <td>{{ product.pack_size_grams }} g</td>
+            <td>{{ product.batch_name }}</td>
+            <td>{{ product.expected_yield_packets }} packets</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">No active products or BOMs found.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+    <!-- Bill of Materials -->
+    <hr>
+
+    <h2>Bill of Materials (BOM)</h2>
+
+    <p>Raw materials required for each production batch.</p>
+
+    <table>
+        <tr>
+            <th>Ingredient</th>
+            <th>Required Quantity</th>
+            <th>Unit</th>
+        </tr>
+
+        {% for component in components %}
+        <tr>
+            <td>{{ component.item_name }}</td>
+            <td>{{ component.quantity_required }}</td>
+            <td>{{ component.unit }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">No BOM ingredients found.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+    <!-- Production Entry Form -->
+    <hr>
+
+    <div class="form-section">
+
+        <h2>Record Production</h2>
+
+        <form method="POST"
+              action="{{ url_for('production.record_production') }}">
+
+            <label>Product:</label><br>
+
+            <select name="product_id" required>
+                {% for product in products %}
+                <option value="{{ product.id }}">
+                    {{ product.product_name }} - {{ product.batch_name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <br><br>
+
+
+            <label>Batch Size:</label><br>
+
+            <input type="number"
+                   name="batch_size"
+                   value="1"
+                   min="1"
+                   step="1"
+                   required>
+
+            <br><br>
+
+
+            <label>Actual Good Output (packets):</label><br>
+
+            <input type="number"
+                   name="actual_output"
+                   min="1"
+                   value="188"
+                   step="1"
+                   required>
+
+            <br><br>
+
+
+            <label>Damaged Pouches:</label><br>
+
+            <input type="number"
+                   name="wastage_quantity"
+                   min="0"
+                   value="6"
+                   step="1"
+                   required>
+
+            <br><br>
+
+
+            <h3>Actual Material Consumption</h3>
+
+            <p>Enter the actual quantities consumed during production.</p>
+
+            {% for component in components %}
+
+                <label>
+                    {{ component.item_name }}
+                    (Planned: {{ component.quantity_required }}
+                    {{ component.unit }})
+                </label>
+
+                <br>
+
+                <input type="number"
+                       name="actual_qty_{{ component.bom_item_id }}"
+                       min="0"
+                       step="0.001"
+                       value="{{ component.quantity_required }}"
+                       required>
+
+                <br><br>
+
+            {% endfor %}
+
+
+            <label>Labour Cost (₹):</label><br>
+
+            <input type="number"
+                   name="labour_cost"
+                   min="0"
+                   step="0.01"
+                   value="1200"
+                   required>
+
+            <br><br>
+
+
+            <label>Utility Cost (₹):</label><br>
+
+            <input type="number"
+                   name="utility_cost"
+                   min="0"
+                   step="0.01"
+                   value="600"
+                   required>
+
+            <br><br>
+
+
+            <label>Production Date:</label><br>
+
+            <input type="date"
+                   name="production_date"
+                   value="{{ today }}"
+                   required>
+
+            <br><br>
+
+
+            <label>Notes:</label><br>
+
+            <textarea name="notes"
+                      rows="3"
+                      placeholder="Enter production observations"></textarea>
+
+            <br><br>
+
+
+            <button type="submit">
+                Record Production
+            </button>
+
+        </form>
+
+    </div>
+
+    <br>
+
+    <a href="{{ url_for('dashboard') }}">
+        Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>

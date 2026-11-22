@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f5f6fa;
+        }
+
+        h1, h2 {
+            color: #243447;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #243447;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        .low-stock {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        a {
+            color: #2471a3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Inventory Management</h1>
+
+    <p>
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </p>
+
+    <h2>Current Stock Summary</h2>
+
+    <table>
+        <tr>
+            <th>Item Code</th>
+            <th>Item Name</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Unit</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+        </tr>
+
+        {% for item in stock_items %}
+        <tr>
+            <td>{{ item.item_code }}</td>
+            <td>{{ item.item_name }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.current_stock }}</td>
+            <td>{{ item.unit }}</td>
+            <td>{{ item.reorder_level }}</td>
+            <td>
+                {% if item.current_stock <= item.reorder_level %}
+                    <span class="low-stock">Low Stock</span>
+                {% else %}
+                    Available
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Stock Movement Ledger</h2>
+
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Movement Type</th>
+            <th>Quantity In</th>
+            <th>Quantity Out</th>
+            <th>Unit</th>
+            <th>Source</th>
+            <th>Reference ID</th>
+            <th>Notes</th>
+        </tr>
+
+        {% for movement in movements %}
+        <tr>
+            <td>{{ movement.movement_date }}</td>
+            <td>{{ movement.item_name }}</td>
+            <td>{{ movement.movement_type }}</td>
+            <td>{{ movement.quantity_in }}</td>
+            <td>{{ movement.quantity_out }}</td>
+            <td>{{ movement.unit }}</td>
+            <td>{{ movement.source_type }}</td>
+            <td>{{ movement.source_id or '-' }}</td>
+            <td>{{ movement.notes or '-' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>

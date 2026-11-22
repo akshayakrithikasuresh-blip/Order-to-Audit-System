@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Order Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #ddd;
+        }
+
+        h1, h2 {
+            color: #243447;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 11px;
+            margin-top: 6px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #243447;
+            color: white;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #243447;
+            color: white;
+        }
+
+        .message {
+            padding: 12px;
+            background: #e6f4ea;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        a {
+            color: #243447;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Sales Order Management</h1>
+    <p>Create and track customer sales orders.</p>
+
+    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card">
+        <h2>Create New Sales Order</h2>
+
+        <form method="POST" action="{{ url_for('sales.sales_entry') }}">
+
+            <label>Customer</label>
+            <select name="customer_id" required>
+                <option value="">Select Customer</option>
+                {% for customer in customers %}
+                    <option value="{{ customer.id }}">
+                        {{ customer.customer_name }} - {{ customer.city }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label>Product</label>
+            <select name="product_id" required>
+                <option value="">Select Product</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}">
+                        {{ product.product_name }} - ₹{{ product.selling_price }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label>Quantity (Packets)</label>
+            <input type="number" name="quantity" min="1" required>
+
+            <label>Notes</label>
+            <textarea name="notes" rows="3"></textarea>
+
+            <button type="submit">Submit Sales Order</button>
+
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>My Sales Orders</h2>
+
+        <table>
+            <tr>
+                <th>Order Number</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_number }}</td>
+                <td>{{ order.customer_name }}</td>
+                <td>{{ order.product_name }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>{{ order.order_date }}</td>
+                <td>{{ order.status }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">No sales orders created yet.</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

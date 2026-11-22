@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Sales Order Approval</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #ddd;
+            overflow-x: auto;
+        }
+
+        h1 {
+            color: #243447;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #243447;
+            color: white;
+        }
+
+        button {
+            padding: 8px 13px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .approve {
+            background: #198754;
+        }
+
+        .reject {
+            background: #dc3545;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        a {
+            color: #243447;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Sales Order Approval</h1>
+
+    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card">
+
+        <h2>Customer Orders</h2>
+
+        <table>
+
+            <tr>
+                <th>Order Number</th>
+                <th>Customer</th>
+                <th>Location</th>
+                <th>Salesman</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+
+            {% for order in orders %}
+
+            <tr>
+                <td>{{ order.order_number }}</td>
+                <td>{{ order.customer_name }}</td>
+                <td>{{ order.city }}, {{ order.state }}</td>
+                <td>{{ order.full_name }}</td>
+                <td>{{ order.product_name }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>₹{{ order.unit_price }}</td>
+
+                <td class="status">
+                    {{ order.status }}
+                </td>
+
+                <td>
+                    {% if order.status == 'submitted' %}
+
+                    <form method="POST"
+                          action="{{ url_for('sales.review_sales',
+                          order_id=order.id, action='approve') }}"
+                          style="display:inline;">
+
+                        <button class="approve" type="submit">
+                            Approve
+                        </button>
+                    </form>
+
+                    <form method="POST"
+                          action="{{ url_for('sales.review_sales',
+                          order_id=order.id, action='reject') }}"
+                          style="display:inline;">
+
+                        <button class="reject" type="submit">
+                            Reject
+                        </button>
+                    </form>
+
+                    {% else %}
+                        No Action
+                    {% endif %}
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="9">No sales orders available.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

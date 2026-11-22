@@ -16,3 +16,25 @@
     <a href="{{ url_for('auth.logout') }}">Logout</a>
 </body>
 </html>
+<hr>
+
+<h3>Purchase Management</h3>
+
+<a href="{{ url_for('purchases.purchase_entry') }}">
+    Go to Purchase Entry
+</a>
+<hr>
+
+<h3>Inventory Management</h3>
+
+<a href="{{ url_for('inventory.inventory_summary') }}">
+    View Inventory and Stock Ledger
+</a>
+<hr>
+<h3>Production Management</h3>
+<a href="{{ url_for('production.production_entry') }}">
+    Go to Production Management
+</a>
+<a href="{{ url_for('sales.sales_entry') }}">Sales Order Management</a>
+
+<a href="{{ url_for('sales.admin_sales') }}">Admin Sales Approval</a>

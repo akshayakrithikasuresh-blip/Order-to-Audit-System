@@ -1,0 +1,553 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments & Receivables Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        h1, h2 {
+            color: #243b55;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .section {
+            background: white;
+            padding: 22px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 11px 20px;
+            background: #243b55;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #365879;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #243b55;
+            color: white;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 5px;
+            background: #e8f5e9;
+            color: #256029;
+        }
+
+        .empty {
+            color: #777;
+            padding: 12px 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-card {
+            background: #edf2f7;
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 5px solid #243b55;
+        }
+
+        .summary-card h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            color: #555;
+        }
+
+        .summary-card p {
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+            color: #243b55;
+        }
+
+        a {
+            color: #243b55;
+        }
+
+        @media(max-width: 700px) {
+            body {
+                margin: 12px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Payment & Receivables Management</h1>
+
+    <p>
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+
+    <!-- RECORD CUSTOMER PAYMENT -->
+
+    <div class="section">
+
+        <h2>Record Customer Payment</h2>
+
+        <form method="POST">
+
+            <label>Customer</label>
+
+            <select name="customer_id" id="customer_id" required>
+                <option value="">Select Customer</option>
+
+                {% for customer in customers %}
+                    <option value="{{ customer.id }}">
+                        {{ customer.customer_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <label>Invoice</label>
+
+            <select name="invoice_id" id="invoice_id" required>
+                <option value="">Select Invoice</option>
+
+                {% for invoice in pending_invoices %}
+                    <option
+                        value="{{ invoice.invoice_id }}"
+                        data-customer="{{ invoice.customer_id }}">
+
+                        {{ invoice.invoice_number }} -
+                        {{ invoice.customer_name }} -
+                        Outstanding: ₹{{ "%.2f"|format(invoice.outstanding) }}
+
+                    </option>
+                {% endfor %}
+            </select>
+
+
+            <label>Payment Date</label>
+
+            <input
+                type="date"
+                name="payment_date"
+                value="{{ today }}"
+                required>
+
+
+            <label>Payment Amount (₹)</label>
+
+            <input
+                type="number"
+                name="amount"
+                min="0.01"
+                step="0.01"
+                placeholder="Enter payment amount"
+                required>
+
+
+            <label>Payment Method</label>
+
+            <select name="payment_method" required>
+                <option value="">Select Method</option>
+                <option value="cash">Cash</option>
+                <option value="upi">UPI</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="cheque">Cheque</option>
+                <option value="other">Other</option>
+            </select>
+
+
+            <label>Reference Number</label>
+
+            <input
+                type="text"
+                name="reference_number"
+                placeholder="Transaction ID / Cheque Number">
+
+
+            <label>Notes</label>
+
+            <textarea
+                name="notes"
+                rows="3"
+                placeholder="Additional payment details"></textarea>
+
+
+            <button type="submit">Record Payment</button>
+
+        </form>
+
+    </div>
+
+
+    <!-- CUSTOMER-WISE OUTSTANDING -->
+
+    <div class="section">
+
+        <h2>Customer-wise Outstanding Summary</h2>
+
+        {% if customer_outstanding %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Pending Invoices</th>
+                    <th>Total Outstanding</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for customer in customer_outstanding %}
+
+                <tr>
+                    <td>{{ customer.customer_name }}</td>
+
+                    <td>{{ customer.pending_invoices }}</td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(customer.total_outstanding) }}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        {% else %}
+
+            <p class="empty">No customer outstanding balances found.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- OUTSTANDING INVOICES -->
+
+    <div class="section">
+
+        <h2>Outstanding Invoices</h2>
+
+        {% if pending_invoices %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice Number</th>
+                    <th>Customer</th>
+                    <th>Invoice Date</th>
+                    <th>Invoice Amount</th>
+                    <th>Outstanding</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for invoice in pending_invoices %}
+
+                <tr>
+                    <td>{{ invoice.invoice_number }}</td>
+
+                    <td>{{ invoice.customer_name }}</td>
+
+                    <td>{{ invoice.invoice_date }}</td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(invoice.total_amount) }}
+                    </td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(invoice.outstanding) }}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        {% else %}
+
+            <p class="empty">No outstanding invoices found.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- AGEING SUMMARY -->
+
+    <div class="section">
+
+        <h2>Receivables Ageing Summary</h2>
+
+        <p>
+            Outstanding balances grouped according to the number
+            of days since the invoice date.
+        </p>
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <h3>0–30 Days</h3>
+                <p>
+                    ₹{{ "%.2f"|format(ageing_summary.days_0_30) }}
+                </p>
+            </div>
+
+            <div class="summary-card">
+                <h3>31–60 Days</h3>
+                <p>
+                    ₹{{ "%.2f"|format(ageing_summary.days_31_60) }}
+                </p>
+            </div>
+
+            <div class="summary-card">
+                <h3>61–90 Days</h3>
+                <p>
+                    ₹{{ "%.2f"|format(ageing_summary.days_61_90) }}
+                </p>
+            </div>
+
+            <div class="summary-card">
+                <h3>Above 90 Days</h3>
+                <p>
+                    ₹{{ "%.2f"|format(ageing_summary.above_90_days) }}
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- INVOICE AGEING DETAILS -->
+
+    <div class="section">
+
+        <h2>Invoice-wise Ageing Details</h2>
+
+        {% if ageing_invoices %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice Number</th>
+                    <th>Customer</th>
+                    <th>Invoice Date</th>
+                    <th>Age (Days)</th>
+                    <th>Outstanding</th>
+                    <th>Ageing Category</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for invoice in ageing_invoices %}
+
+                <tr>
+                    <td>{{ invoice.invoice_number }}</td>
+
+                    <td>{{ invoice.customer_name }}</td>
+
+                    <td>{{ invoice.invoice_date }}</td>
+
+                    <td>{{ invoice.age_days }}</td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(invoice.outstanding) }}
+                    </td>
+
+                    <td>{{ invoice.ageing_category }}</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        {% else %}
+
+            <p class="empty">No unpaid invoices available for ageing.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- PAYMENT HISTORY -->
+
+    <div class="section">
+
+        <h2>Payment History</h2>
+
+        {% if payment_history %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Reference</th>
+                    <th>Allocated Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for payment in payment_history %}
+
+                <tr>
+                    <td>{{ payment.payment_date }}</td>
+
+                    <td>{{ payment.customer_name }}</td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(payment.amount) }}
+                    </td>
+
+                    <td>
+                        {{ payment.payment_method|replace('_', ' ')|title }}
+                    </td>
+
+                    <td>
+                        {{ payment.reference_number or '-' }}
+                    </td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(payment.allocated_amount) }}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        {% else %}
+
+            <p class="empty">No payments recorded yet.</p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const customerSelect =
+        document.getElementById("customer_id");
+
+    const invoiceSelect =
+        document.getElementById("invoice_id");
+
+
+    function filterInvoices() {
+
+        const selectedCustomer = customerSelect.value;
+
+        Array.from(invoiceSelect.options).forEach(option => {
+
+            if (option.value === "") {
+                option.hidden = false;
+                return;
+            }
+
+            option.hidden =
+                selectedCustomer !== "" &&
+                option.dataset.customer !== selectedCustomer;
+
+        });
+
+        if (
+            invoiceSelect.selectedOptions.length &&
+            invoiceSelect.selectedOptions[0].hidden
+        ) {
+            invoiceSelect.value = "";
+        }
+    }
+
+
+    customerSelect.addEventListener("change", filterInvoices);
+
+</script>
+
+</body>
+</html>

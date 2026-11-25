@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px #ddd;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #243447;
+            color: white;
+        }
+
+        button {
+            background: #198754;
+            color: white;
+            padding: 9px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .message {
+            padding: 12px;
+            background: #e6f4ea;
+            margin-bottom: 12px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Dispatch Management</h1>
+
+    <p>
+        <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card">
+        <h2>Invoices Awaiting Dispatch</h2>
+
+        <table>
+            <tr>
+                <th>Invoice Number</th>
+                <th>Order Number</th>
+                <th>Customer</th>
+                <th>Quantity</th>
+                <th>Invoice Total</th>
+                <th>Action</th>
+            </tr>
+
+            {% for item in pending_dispatches %}
+            <tr>
+                <td>{{ item.invoice_number }}</td>
+                <td>{{ item.order_number }}</td>
+                <td>{{ item.customer_name }}</td>
+                <td>{{ item.total_quantity }}</td>
+                <td>₹{{ item.total_amount }}</td>
+                <td>
+                    <form method="POST"
+                          action="{{ url_for('dispatch.create_dispatch',
+                          invoice_id=item.invoice_id) }}"
+                          onsubmit="return confirm('Confirm dispatch of these goods?');">
+
+                        <button type="submit">Record Dispatch</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">No invoices awaiting dispatch.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Dispatch History</h2>
+
+        <table>
+            <tr>
+                <th>Dispatch Number</th>
+                <th>Invoice Number</th>
+                <th>Customer</th>
+                <th>Dispatch Date</th>
+                <th>Quantity</th>
+            </tr>
+
+            {% for item in dispatch_records %}
+            <tr>
+                <td>{{ item.dispatch_number }}</td>
+                <td>{{ item.invoice_number }}</td>
+                <td>{{ item.customer_name }}</td>
+                <td>{{ item.dispatch_date }}</td>
+                <td>{{ item.total_quantity }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No dispatches recorded yet.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

@@ -40,9 +40,9 @@ The Order-to-Audit System provides a centralized application to manage and monit
 - **Flask:** Lightweight framework suitable for developing modular web applications.
 - **MySQL:** Provides structured storage and relationships between business records.
 - **SQLAlchemy:** Simplifies database interaction and transaction management.
-- **Flask-Login:** Supports authenticated sessions.
+- **Flask-Login:** Supports authenticated user sessions.
 - **ReportLab:** Generates downloadable GST invoice PDFs.
-- **HTML and CSS:** Provide accessible browser-based interfaces.
+- **HTML and CSS:** Provide browser-based interfaces.
 
 ## 4. Features and Requirement Mapping
 
@@ -118,6 +118,8 @@ Major database tables include:
 - `dispatches` and `dispatch_items` – Dispatch records.
 - `payments` and `payment_allocations` – Customer payment records.
 - `audit_logs` – Audit-related activity records.
+
+The database structure is provided in the `schema.sql` file in the repository.
 
 ## 8. Stock and BOM Calculation Method
 
@@ -256,7 +258,7 @@ Differences between expected and recorded material balances should be interprete
 
 ```bash
 git clone https://github.com/akshayakrithikasuresh-blip/Order-to-Audit-System.git
-cd Order-to-Audit
+cd Order-to-Audit-System
 ```
 
 ### Step 2: Create a virtual environment
@@ -300,9 +302,23 @@ Do not upload `.env` to GitHub.
 
 ### Step 5: Configure the database
 
-Create the MySQL database named `order_to_audit` and configure the required tables using the project's database schema.
+The database structure is provided in `schema.sql`.
 
-Ensure the MySQL server is running and that the configured user has permission to access the database.
+1. Open MySQL Workbench and connect to your MySQL server.
+2. Create the database:
+
+   ```sql
+   CREATE DATABASE order_to_audit;
+   ```
+
+3. Navigate to **Server → Data Import**.
+4. Select **Import from Self-Contained File**.
+5. Browse and select the `schema.sql` file from the project folder.
+6. Set the default target schema to `order_to_audit`.
+7. Click **Start Import**.
+8. Verify that the database tables have been created successfully.
+
+Ensure that the MySQL server is running and that the configured database user has permission to access `order_to_audit`.
 
 ### Step 6: Create user accounts
 
@@ -347,7 +363,7 @@ Passwords are configured locally and are intentionally not included in this publ
 **GitHub:**  
 https://github.com/akshayakrithikasuresh-blip/Order-to-Audit-System
 
-The repository contains the application source code and development commit history.
+The repository contains the application source code, database schema and development commit history.
 
 ---
 

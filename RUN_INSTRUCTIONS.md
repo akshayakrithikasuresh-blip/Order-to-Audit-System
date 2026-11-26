@@ -101,15 +101,13 @@ Keep the PowerShell window open while using the application. Press
 
 ## 8. Test accounts
 
-The application has role support for these accounts:
-
-  Role                    Username
-  ----------------------- --------------
-  Admin                   `admin`
-  Salesman                `salesman1`
-  Production Supervisor   `prod_super`
-  Accountant              `accountant`
-  Owner                   `owner`
+| Role | Test username | Password
+|---|---|---|
+| Admin | 'admin' |'Admin@123'|
+| Salesman | `salesman1` |'Sales@123'|
+| Production Supervisor | `prod_super` |'Prod_Super@123'|
+| Accountant | `accountant` |'Account@123'|
+| Owner | `owner` |'owner@123'|
 
 ## Troubleshooting
 

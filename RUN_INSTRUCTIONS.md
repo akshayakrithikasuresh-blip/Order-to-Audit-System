@@ -111,11 +111,6 @@ The application has role support for these accounts:
   Accountant              `accountant`
   Owner                   `owner`
 
-The passwords are not included in this document. Use only dedicated demo
-credentials supplied separately by the project owner after the demo
-accounts have been created or seeded. Do not publish real account
-passwords or password hashes in this public repository.
-
 ## Troubleshooting
 
 -   **MySQL connection error:** Check that MySQL Server is running and

@@ -126,6 +126,4 @@ Keep the PowerShell window open while using the application. Press
 
 ## Notes for reviewers
 
-`http://127.0.0.1:5000/` is a local address. It works on the computer
-running the application; it is not a public live link. To access the
-application remotely, the project must be deployed to a hosting service.
+`http://127.0.0.1:5000/` is a local address. 

@@ -7,6 +7,7 @@ from routes.sales import sales
 from routes.invoices import invoices
 from routes.dispatch import dispatch
 from routes.payments import payments
+from routes.reports import reports
 from config import Config
 from extensions import db, login_manager
 from models.user import User
@@ -31,6 +32,7 @@ def create_app():
     app.register_blueprint(invoices)
     app.register_blueprint(dispatch)
     app.register_blueprint(payments)
+    app.register_blueprint(reports)
     @app.route("/")
     def home():
         return redirect(url_for("auth.login"))

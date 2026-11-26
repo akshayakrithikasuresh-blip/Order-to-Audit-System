@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Variance Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 25px; background: #f5f6fa; color: #222; }
+        h1, h2 { color: #263b59; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
+        .card { background: white; padding: 18px; border-radius: 8px; box-shadow: 0 2px 6px #ddd; }
+        .card h3 { font-size: 14px; color: #666; margin-top: 0; }
+        .card p { font-size: 22px; font-weight: bold; margin-bottom: 0; }
+        .section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 750px; }
+        th, td { padding: 11px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #263b59; color: white; }
+        form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+        input, button, a { padding: 9px 12px; }
+        button { background: #263b59; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        a { color: #2457a6; }
+        .back { display: inline-block; margin-bottom: 15px; }
+        @media(max-width: 600px) { body { margin: 12px; } }
+    </style>
+</head>
+<body>
+
+<a class="back" href="{{ url_for('reports.reports_dashboard') }}">← Back to Reports</a>
+
+<h1>Production Variance & Costing Report</h1>
+<p>Compare planned production with actual production and material consumption.</p>
+
+<div class="section">
+    <h2>Filter by Production Date</h2>
+    <form method="GET">
+        <div>
+            <label>Start Date</label><br>
+            <input type="date" name="start_date" value="{{ start_date }}">
+        </div>
+        <div>
+            <label>End Date</label><br>
+            <input type="date" name="end_date" value="{{ end_date }}">
+        </div>
+        <button type="submit">Apply Filter</button>
+        <a href="{{ url_for('reports.production_variance_report') }}">Clear</a>
+    </form>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <h3>Total Production Runs</h3>
+        <p>{{ production_summary.total_runs }}</p>
+    </div>
+    <div class="card">
+        <h3>Planned Output</h3>
+        <p>{{ production_summary.planned_output }}</p>
+    </div>
+    <div class="card">
+        <h3>Actual Output</h3>
+        <p>{{ production_summary.actual_output }}</p>
+    </div>
+    <div class="card">
+        <h3>Total Wastage</h3>
+        <p>{{ production_summary.total_wastage }}</p>
+    </div>
+    <div class="card">
+        <h3>Total Production Cost</h3>
+        <p>₹{{ "%.2f"|format(production_summary.total_production_cost or 0) }}</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Production Output Variance</h2>
+    <table>
+        <tr>
+            <th>Planned Output</th>
+            <th>Actual Output</th>
+            <th>Output Variance</th>
+            <th>Total Wastage</th>
+        </tr>
+        <tr>
+            <td>{{ output_variance.planned_output }}</td>
+            <td>{{ output_variance.actual_output }}</td>
+            <td>{{ output_variance.output_variance }}</td>
+            <td>{{ output_variance.total_wastage }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Production Run Costing</h2>
+    <table>
+        <tr>
+            <th>Run Number</th>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Planned</th>
+            <th>Actual</th>
+            <th>Variance</th>
+            <th>Yield %</th>
+            <th>Material Cost</th>
+            <th>Labour Cost</th>
+            <th>Utility Cost</th>
+            <th>Total Cost</th>
+            <th>Cost / Packet</th>
+        </tr>
+        {% for row in production_rows %}
+        <tr>
+            <td>{{ row.run_number }}</td>
+            <td>{{ row.production_date }}</td>
+            <td>{{ row.product_name }}</td>
+            <td>{{ row.expected_output }}</td>
+            <td>{{ row.actual_output }}</td>
+            <td>{{ row.output_variance }}</td>
+            <td>{{ "%.2f"|format(row.yield_percentage or 0) }}%</td>
+            <td>₹{{ "%.2f"|format(row.material_cost or 0) }}</td>
+            <td>₹{{ "%.2f"|format(row.labour_cost or 0) }}</td>
+            <td>₹{{ "%.2f"|format(row.utility_cost or 0) }}</td>
+            <td>₹{{ "%.2f"|format(row.total_cost or 0) }}</td>
+            <td>₹{{ "%.2f"|format(row.cost_per_packet or 0) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="12">No completed production runs found.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="section">
+    <h2>Raw Material Consumption Variance</h2>
+    <table>
+        <tr>
+            <th>Run Number</th>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Raw Material</th>
+            <th>Planned Quantity</th>
+            <th>Actual Quantity</th>
+            <th>Variance</th>
+            <th>Unit</th>
+            <th>Unit Cost</th>
+            <th>Actual Material Cost</th>
+        </tr>
+        {% for row in consumption_rows %}
+        <tr>
+            <td>{{ row.run_number }}</td>
+            <td>{{ row.production_date }}</td>
+            <td>{{ row.product_name }}</td>
+            <td>{{ row.item_name }}</td>
+            <td>{{ row.planned_quantity }}</td>
+            <td>{{ row.actual_quantity }}</td>
+            <td>{{ row.quantity_variance }}</td>
+            <td>{{ row.unit }}</td>
+            <td>₹{{ "%.2f"|format(row.unit_cost or 0) }}</td>
+            <td>₹{{ "%.2f"|format(row.actual_material_cost or 0) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10">No material consumption records found.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Stock Reports | Order-to-Audit</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+            color: #263238;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: #183153;
+        }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            margin: 22px 0;
+            border-radius: 9px;
+            box-shadow: 0 2px 7px rgba(0,0,0,0.07);
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button, .link {
+            display: inline-block;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            background: #183153;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+            margin-top: 18px;
+        }
+
+        .card {
+            background: #f4f6f9;
+            padding: 18px;
+            border-radius: 7px;
+        }
+
+        .card p {
+            color: #667085;
+            margin: 0 0 8px;
+        }
+
+        .value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #183153;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 950px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e8ec;
+            text-align: left;
+        }
+
+        th {
+            background: #edf2f7;
+        }
+
+        .low {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .normal {
+            color: #218838;
+            font-weight: bold;
+        }
+
+        .empty {
+            color: #777;
+            padding: 15px;
+        }
+
+        .note {
+            color: #667085;
+            font-size: 13px;
+        }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Stock Summary and Stock Ledger</h1>
+
+    <p>Inventory tracking and material movement reports</p>
+
+    <a class="link" href="{{ url_for('reports.reports_dashboard') }}">
+        Back to Reports Dashboard
+    </a>
+
+    <!-- FILTERS -->
+
+    <div class="panel">
+
+        <h2>Filter Stock Movements</h2>
+
+        <form method="GET" action="{{ url_for('reports.stock_report') }}">
+
+            <div class="filters">
+
+                <div>
+                    <label for="item_id">Inventory Item</label>
+
+                    <select name="item_id" id="item_id">
+                        <option value="">All Items</option>
+
+                        {% for item in inventory_items %}
+                        <option value="{{ item.id }}"
+                            {% if selected_item == item.id|string %}
+                            selected
+                            {% endif %}>
+                            {{ item.item_name }} ({{ item.item_code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="start_date">From Date</label>
+                    <input type="date" name="start_date"
+                           id="start_date" value="{{ start_date }}">
+                </div>
+
+                <div>
+                    <label for="end_date">To Date</label>
+                    <input type="date" name="end_date"
+                           id="end_date" value="{{ end_date }}">
+                </div>
+
+                <div>
+                    <label for="movement_type">Movement Type</label>
+
+                    <select name="movement_type" id="movement_type">
+                        <option value="">All Movements</option>
+
+                        {% for value, label in [
+                            ('opening', 'Opening'),
+                            ('purchase', 'Purchase'),
+                            ('production_issue', 'Production Issue'),
+                            ('production_output', 'Production Output'),
+                            ('dispatch', 'Dispatch'),
+                            ('return', 'Return'),
+                            ('adjustment', 'Adjustment')
+                        ] %}
+
+                        <option value="{{ value }}"
+                            {% if selected_movement == value %}
+                            selected
+                            {% endif %}>
+                            {{ label }}
+                        </option>
+
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit">Apply Filters</button>
+
+                <a class="link" href="{{ url_for('reports.stock_report') }}">
+                    Clear Filters
+                </a>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- MOVEMENT SUMMARY -->
+
+    <div class="panel">
+
+        <h2>Movement Summary</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <p>Total Movements</p>
+                <div class="value">
+                    {{ movement_totals.movement_count }}
+                </div>
+            </div>
+
+            <div class="card">
+                <p>Total Stock Received</p>
+                <div class="value">
+                    {{ "%.3f"|format(movement_totals.total_in) }}
+                </div>
+            </div>
+
+            <div class="card">
+                <p>Total Stock Issued</p>
+                <div class="value">
+                    {{ "%.3f"|format(movement_totals.total_out) }}
+                </div>
+            </div>
+
+        </div>
+
+        <p class="note">
+            Movement totals follow the selected filters.
+        </p>
+
+    </div>
+
+    <!-- CURRENT STOCK -->
+
+    <div class="panel">
+
+        <h2>Current Stock Summary</h2>
+
+        <p class="note">
+            Current balances use all recorded stock movements,
+            regardless of the selected ledger date range.
+        </p>
+
+        {% if stock_summary %}
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Item Code</th>
+                        <th>Category</th>
+                        <th>Total Received</th>
+                        <th>Total Issued</th>
+                        <th>Current Stock</th>
+                        <th>Reorder Level</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in stock_summary %}
+                    <tr>
+                        <td>{{ item.item_name }}</td>
+                        <td>{{ item.item_code }}</td>
+                        <td>{{ item.category|replace("_", " ")|title }}</td>
+
+                        <td>
+                            {{ "%.3f"|format(item.total_received) }}
+                            {{ item.unit }}
+                        </td>
+
+                        <td>
+                            {{ "%.3f"|format(item.total_issued) }}
+                            {{ item.unit }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ "%.3f"|format(item.current_stock) }}
+                                {{ item.unit }}
+                            </strong>
+                        </td>
+
+                        <td>{{ item.reorder_level }} {{ item.unit }}</td>
+
+                        <td>
+                            {% if item.current_stock <= item.reorder_level %}
+                                <span class="low">Low Stock</span>
+                            {% else %}
+                                <span class="normal">Normal</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+        {% else %}
+        <p class="empty">No inventory items found.</p>
+        {% endif %}
+
+    </div>
+
+    <!-- STOCK LEDGER -->
+
+    <div class="panel">
+
+        <h2>Detailed Stock Movement Ledger</h2>
+
+        {% if ledger_rows %}
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date and Time</th>
+                        <th>Item Name</th>
+                        <th>Item Code</th>
+                        <th>Movement Type</th>
+                        <th>Quantity In</th>
+                        <th>Quantity Out</th>
+                        <th>Unit</th>
+                        <th>Source</th>
+                        <th>Source ID</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in ledger_rows %}
+                    <tr>
+                        <td>{{ row.movement_date }}</td>
+                        <td>{{ row.item_name }}</td>
+                        <td>{{ row.item_code }}</td>
+
+                        <td>
+                            {{ row.movement_type|replace("_", " ")|title }}
+                        </td>
+
+                        <td>{{ "%.3f"|format(row.quantity_in or 0) }}</td>
+                        <td>{{ "%.3f"|format(row.quantity_out or 0) }}</td>
+                        <td>{{ row.unit }}</td>
+                        <td>{{ row.source_type }}</td>
+                        <td>{{ row.source_id or "-" }}</td>
+                        <td>{{ row.notes or "-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+        {% if ledger_rows|length == 1000 %}
+        <p class="note">
+            Showing the latest 1,000 matching movements.
+            Narrow your filters to inspect a smaller period.
+        </p>
+        {% endif %}
+
+        {% else %}
+        <p class="empty">
+            No stock movements found for the selected filters.
+        </p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

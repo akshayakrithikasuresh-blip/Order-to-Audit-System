@@ -1,10 +1,13 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order-to-Audit Dashboard</title>
 </head>
 <body>
+
     <h1>Welcome to Order-to-Audit System!</h1>
 
     <h2>Hello, {{ user.full_name }}</h2>
@@ -13,77 +16,72 @@
 
     <p>You have successfully logged in.</p>
 
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
-</body>
-</html>
+    <p>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+    </p>
 
-<hr>
+    <hr>
 
-<h3>Purchase Management</h3>
-<p>
+    <h3>Purchase Management</h3>
     <a href="{{ url_for('purchases.purchase_entry') }}">
         Go to Purchase Entry
     </a>
-</p>
 
-<hr>
+    <hr>
 
-<h3>Inventory Management</h3>
-<p>
+    <h3>Inventory Management</h3>
     <a href="{{ url_for('inventory.inventory_summary') }}">
         View Inventory and Stock Ledger
     </a>
-</p>
 
-<hr>
+    <hr>
 
-<h3>Production Management</h3>
-<p>
+    <h3>Production Management</h3>
     <a href="{{ url_for('production.production_entry') }}">
         Go to Production Management
     </a>
-</p>
 
-<hr>
+    <hr>
 
-<h3>Sales Order Management</h3>
-<p>
+    <h3>Sales Order Management</h3>
     <a href="{{ url_for('sales.sales_entry') }}">
         Go to Sales Order Management
     </a>
-</p>
 
-<hr>
+    <hr>
 
-<h3>Admin Sales Approval</h3>
-<p>
+    <h3>Admin Sales Approval</h3>
     <a href="{{ url_for('sales.admin_sales') }}">
         Go to Admin Sales Approval
     </a>
-</p>
 
-<hr>
+    <hr>
 
-<h3>GST Invoice Management</h3>
-<p>
+    <h3>GST Invoice Management</h3>
     <a href="{{ url_for('invoices.invoice_management') }}">
         Go to GST Invoice Management
     </a>
-</p>
 
-<hr>
+    <hr>
 
-<h3>Dispatch Management</h3>
-<p>
+    <h3>Dispatch Management</h3>
     <a href="{{ url_for('dispatch.dispatch_management') }}">
         Go to Dispatch Management
     </a>
-</p>
-<hr>
 
-<h3>Payment Management</h3>
-<p>
+    <hr>
+
+    <h3>Payment Management</h3>
     <a href="{{ url_for('payments.payment_management') }}">
         Go to Payment Management
     </a>
-</p>
+
+    <hr>
+
+    <h3>Business Reports</h3>
+    <a href="{{ url_for('reports.reports_dashboard') }}">
+        View Business Reports Dashboard
+    </a>
+
+</body>
+</html>

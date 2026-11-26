@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Register | Order-to-Audit</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+            color: #263238;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: #183153;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 9px;
+            box-shadow: 0 2px 7px rgba(0,0,0,0.07);
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input {
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button, .link {
+            display: inline-block;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            background: #183153;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: #f4f6f9;
+            padding: 17px;
+            border-radius: 7px;
+        }
+
+        .card p {
+            color: #667085;
+            margin: 0 0 8px;
+        }
+
+        .amount {
+            font-size: 21px;
+            font-weight: bold;
+            color: #183153;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1100px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 11px;
+            border-bottom: 1px solid #e5e8ec;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #edf2f7;
+        }
+
+        .empty {
+            color: #777;
+            padding: 15px;
+        }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Sales Register and GST Report</h1>
+    <p>Invoice-wise sales and GST details</p>
+
+    <a class="link" href="{{ url_for('reports.reports_dashboard') }}">
+        Back to Reports Dashboard
+    </a>
+
+    <div class="panel">
+        <h2>Filter Sales by Invoice Date</h2>
+
+        <form method="GET" action="{{ url_for('reports.sales_register') }}">
+            <div class="filters">
+
+                <div>
+                    <label for="start_date">From Date</label>
+                    <input type="date" id="start_date"
+                           name="start_date" value="{{ start_date }}">
+                </div>
+
+                <div>
+                    <label for="end_date">To Date</label>
+                    <input type="date" id="end_date"
+                           name="end_date" value="{{ end_date }}">
+                </div>
+
+                <button type="submit">Apply Filter</button>
+
+                <a class="link" href="{{ url_for('reports.sales_register') }}">
+                    Clear Filter
+                </a>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Sales Summary</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <p>Number of Invoices</p>
+                <div class="amount">{{ totals.invoice_count }}</div>
+            </div>
+
+            <div class="card">
+                <p>Taxable Sales</p>
+                <div class="amount">
+                    ₹{{ "%.2f"|format(totals.taxable_total) }}
+                </div>
+            </div>
+
+            <div class="card">
+                <p>Total GST</p>
+                <div class="amount">
+                    ₹{{ "%.2f"|format(
+                        totals.cgst_total
+                        + totals.sgst_total
+                        + totals.igst_total
+                    ) }}
+                </div>
+            </div>
+
+            <div class="card">
+                <p>Grand Total Sales</p>
+                <div class="amount">
+                    ₹{{ "%.2f"|format(totals.grand_total) }}
+                </div>
+            </div>
+
+            <div class="card">
+                <p>Intra-State Sales</p>
+                <div class="amount">
+                    ₹{{ "%.2f"|format(totals.intra_state_sales) }}
+                </div>
+            </div>
+
+            <div class="card">
+                <p>Inter-State Sales</p>
+                <div class="amount">
+                    ₹{{ "%.2f"|format(totals.inter_state_sales) }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>GST Breakdown</h2>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>CGST</th>
+                    <th>SGST</th>
+                    <th>IGST</th>
+                </tr>
+                <tr>
+                    <td>₹{{ "%.2f"|format(totals.cgst_total) }}</td>
+                    <td>₹{{ "%.2f"|format(totals.sgst_total) }}</td>
+                    <td>₹{{ "%.2f"|format(totals.igst_total) }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Detailed Sales Register</h2>
+
+        {% if sales_rows %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Invoice Date</th>
+                        <th>Customer</th>
+                        <th>GSTIN</th>
+                        <th>Customer State</th>
+                        <th>Place of Supply</th>
+                        <th>Supply Type</th>
+                        <th>Taxable Amount</th>
+                        <th>CGST</th>
+                        <th>SGST</th>
+                        <th>IGST</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in sales_rows %}
+                    <tr>
+                        <td>{{ row.invoice_number }}</td>
+                        <td>{{ row.invoice_date }}</td>
+                        <td>{{ row.customer_name }}</td>
+                        <td>{{ row.gstin or "Not Provided" }}</td>
+                        <td>{{ row.customer_state }}</td>
+                        <td>{{ row.place_of_supply }}</td>
+                        <td>{{ row.supply_type|replace("_", " ")|title }}</td>
+                        <td>₹{{ "%.2f"|format(row.taxable_amount) }}</td>
+                        <td>₹{{ "%.2f"|format(row.cgst_amount or 0) }}</td>
+                        <td>₹{{ "%.2f"|format(row.sgst_amount or 0) }}</td>
+                        <td>₹{{ "%.2f"|format(row.igst_amount or 0) }}</td>
+                        <td><strong>₹{{ "%.2f"|format(row.total_amount) }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <p class="empty">No posted invoices found for the selected period.</p>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

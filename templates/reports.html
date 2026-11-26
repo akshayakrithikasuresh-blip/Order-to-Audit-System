@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Reports | Order-to-Audit</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+            color: #263238;
+        }
+
+        h1, h2 {
+            color: #183153;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            font-size: 15px;
+            color: #607080;
+            margin-top: 0;
+        }
+
+        .value {
+            font-size: 25px;
+            font-weight: bold;
+            color: #183153;
+        }
+
+        .section {
+            background: white;
+            padding: 22px;
+            margin: 22px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e8ec;
+            text-align: left;
+        }
+
+        th {
+            background: #edf2f7;
+        }
+
+        .warning {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #218838;
+        }
+
+        .back {
+            display: inline-block;
+            margin: 10px 0 20px;
+            text-decoration: none;
+            color: white;
+            background: #183153;
+            padding: 10px 16px;
+            border-radius: 6px;
+        }
+
+        .empty {
+            color: #777;
+            padding: 15px 0;
+        }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .value {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Business Reports Dashboard</h1>
+    <p>Order-to-Audit Management System</p>
+
+    <a class="back" href="{{ url_for('dashboard') }}">
+        Back to Dashboard
+    </a>
+<a href="{{ url_for('reports.sales_register') }}"
+   style="display:inline-block; padding:10px 16px;
+   background:#183153; color:white; text-decoration:none;
+   border-radius:6px;">
+    View Detailed Sales Register and GST Report
+</a>
+    <h2>Business Overview</h2>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Sales</h3>
+            <div class="value">
+                ₹{{ "%.2f"|format(sales_summary.total_sales) }}
+            </div>
+            <p>{{ sales_summary.invoice_count }} posted invoices</p>
+        </div>
+
+        <div class="card">
+            <h3>Taxable Sales</h3>
+            <div class="value">
+                ₹{{ "%.2f"|format(sales_summary.taxable_amount) }}
+            </div>
+            <p>Before GST</p>
+        </div>
+
+        <div class="card">
+            <h3>Total GST</h3>
+            <div class="value">
+                ₹{{ "%.2f"|format(
+                    sales_summary.cgst_amount
+                    + sales_summary.sgst_amount
+                    + sales_summary.igst_amount
+                ) }}
+            </div>
+            <p>CGST + SGST + IGST</p>
+        </div>
+
+        <div class="card">
+            <h3>Outstanding Receivables</h3>
+            <div class="value">
+                ₹{{ "%.2f"|format(outstanding_summary.outstanding_amount) }}
+            </div>
+            <p>Pending customer payments</p>
+        </div>
+
+        <div class="card">
+            <h3>Inventory Items</h3>
+            <div class="value">
+                {{ inventory_summary.total_items }}
+            </div>
+            <p>Active inventory items</p>
+        </div>
+
+        <div class="card">
+            <h3>Low Stock Alerts</h3>
+            <div class="value warning">
+                {{ inventory_summary.low_stock_count }}
+            </div>
+            <p>Items at or below reorder level</p>
+        </div>
+
+        <div class="card">
+            <h3>Production Runs</h3>
+            <div class="value">
+                {{ production_summary.total_runs }}
+            </div>
+            <p>Completed production runs</p>
+        </div>
+
+        <div class="card">
+            <h3>Actual Production</h3>
+            <div class="value">
+                {{ production_summary.actual_output }}
+            </div>
+            <p>Packets produced</p>
+        </div>
+
+    </div>
+
+    <div class="section">
+        <h2>GST Summary</h2>
+
+        <table>
+            <tr>
+                <th>GST Component</th>
+                <th>Amount</th>
+            </tr>
+            <tr>
+                <td>CGST</td>
+                <td>₹{{ "%.2f"|format(sales_summary.cgst_amount) }}</td>
+            </tr>
+            <tr>
+                <td>SGST</td>
+                <td>₹{{ "%.2f"|format(sales_summary.sgst_amount) }}</td>
+            </tr>
+            <tr>
+                <td>IGST</td>
+                <td>₹{{ "%.2f"|format(sales_summary.igst_amount) }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Production Overview</h2>
+
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Quantity</th>
+            </tr>
+            <tr>
+                <td>Planned Output</td>
+                <td>{{ production_summary.planned_output }}</td>
+            </tr>
+            <tr>
+                <td>Actual Output</td>
+                <td>{{ production_summary.actual_output }}</td>
+            </tr>
+            <tr>
+                <td>Total Wastage</td>
+                <td>{{ production_summary.total_wastage }}</td>
+            </tr>
+            <tr>
+                <td>Output Difference (Actual - Planned)</td>
+                <td>
+                    {{ production_summary.actual_output
+                       - production_summary.planned_output }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Low Stock Items</h2>
+
+        {% if low_stock_items %}
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Item Code</th>
+                <th>Category</th>
+                <th>Current Stock</th>
+                <th>Reorder Level</th>
+                <th>Unit</th>
+            </tr>
+
+            {% for item in low_stock_items %}
+            <tr>
+                <td>{{ item.item_name }}</td>
+                <td>{{ item.item_code }}</td>
+                <td>{{ item.category }}</td>
+                <td class="warning">{{ item.current_stock }}</td>
+                <td>{{ item.reorder_level }}</td>
+                <td>{{ item.unit }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p class="empty">No low-stock items currently.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Recent GST Invoices</h2>
+
+        {% if recent_invoices %}
+        <table>
+            <tr>
+                <th>Invoice Number</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+            </tr>
+
+            {% for invoice in recent_invoices %}
+            <tr>
+                <td>{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.invoice_date }}</td>
+                <td>{{ invoice.customer_name }}</td>
+                <td>₹{{ "%.2f"|format(invoice.total_amount) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p class="empty">No invoices available.</p>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>
+<br><br>
+
+<a href="{{ url_for('reports.stock_report') }}"
+   style="display:inline-block; padding:10px 16px;
+   background:#183153; color:white; text-decoration:none;
+   border-radius:6px;">
+    View Stock Summary and Stock Ledger
+</a>
+<a href="{{ url_for('reports.production_variance_report') }}">
+    Production Variance & Costing Report
+</a>
+
+<a href="{{ url_for('reports.receivables_report') }}">
+    Outstanding & Receivables Report
+</a>

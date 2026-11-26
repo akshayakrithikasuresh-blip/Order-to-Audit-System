@@ -1,5 +1,5 @@
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from sqlalchemy import text
 from extensions import db
@@ -10,9 +10,16 @@ from uuid import uuid4
 purchases = Blueprint("purchases", __name__)
 
 
+def check_purchase_access():
+    if not current_user.has_role("Admin"):
+        abort(403)
+
+
 @purchases.route("/purchases", methods=["GET", "POST"])
 @login_required
 def purchase_entry():
+
+    check_purchase_access()
 
     if request.method == "POST":
         try:
@@ -25,7 +32,9 @@ def purchase_entry():
                 raise ValueError("Enter valid numeric values.")
 
             if quantity <= 0 or unit_price < 0:
-                raise ValueError("Quantity must be positive and price cannot be negative.")
+                raise ValueError(
+                    "Quantity must be positive and price cannot be negative."
+                )
 
             supplier = db.session.execute(
                 text("SELECT id FROM suppliers WHERE id = :id"),

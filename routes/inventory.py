@@ -1,6 +1,6 @@
 
-from flask import Blueprint, render_template
-from flask_login import login_required
+from flask import Blueprint, render_template, abort
+from flask_login import login_required, current_user
 from sqlalchemy import text
 from extensions import db
 
@@ -10,6 +10,13 @@ inventory = Blueprint("inventory", __name__)
 @inventory.route("/inventory")
 @login_required
 def inventory_summary():
+
+    # Allow only Admin and Production Supervisor
+    if not (
+        current_user.has_role("Admin")
+        or current_user.has_role("Production Supervisor")
+    ):
+        abort(403)
 
     stock_items = db.session.execute(
         text("""

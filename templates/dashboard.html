@@ -5,83 +5,180 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order-to-Audit Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .header {
+            background: #17365d;
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .module {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .module h3 {
+            color: #17365d;
+        }
+
+        a {
+            color: #1769aa;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .logout {
+            color: white;
+            float: right;
+        }
+    </style>
 </head>
+
 <body>
 
-    <h1>Welcome to Order-to-Audit System!</h1>
+<div class="container">
 
-    <h2>Hello, {{ user.full_name }}</h2>
+    <div class="header">
+        <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
 
-    <p>Your Role: {{ user.role.role_name }}</p>
+        <h1>Order-to-Audit System</h1>
 
-    <p>You have successfully logged in.</p>
+        <h2>Welcome, {{ user.full_name }}!</h2>
 
-    <p>
-        <a href="{{ url_for('auth.logout') }}">Logout</a>
-    </p>
+        <p>Your Role: <strong>{{ user.role.role_name }}</strong></p>
+    </div>
 
-    <hr>
+    <div class="modules">
 
-    <h3>Purchase Management</h3>
-    <a href="{{ url_for('purchases.purchase_entry') }}">
-        Go to Purchase Entry
-    </a>
+        {% if user.role.role_name == "Admin" %}
 
-    <hr>
+            <div class="module">
+                <h3>Purchase Management</h3>
+                <a href="{{ url_for('purchases.purchase_entry') }}">Go to Purchase Entry</a>
+            </div>
 
-    <h3>Inventory Management</h3>
-    <a href="{{ url_for('inventory.inventory_summary') }}">
-        View Inventory and Stock Ledger
-    </a>
+            <div class="module">
+                <h3>Inventory Management</h3>
+                <a href="{{ url_for('inventory.inventory_summary') }}">View Inventory and Stock Ledger</a>
+            </div>
 
-    <hr>
+            <div class="module">
+                <h3>Production Management</h3>
+                <a href="{{ url_for('production.production_entry') }}">Go to Production Management</a>
+            </div>
 
-    <h3>Production Management</h3>
-    <a href="{{ url_for('production.production_entry') }}">
-        Go to Production Management
-    </a>
+            <div class="module">
+                <h3>Sales Order Management</h3>
+                <a href="{{ url_for('sales.sales_entry') }}">Go to Sales Orders</a>
+            </div>
 
-    <hr>
+            <div class="module">
+                <h3>Admin Sales Approval</h3>
+                <a href="{{ url_for('sales.admin_sales') }}">Approve or Reject Orders</a>
+            </div>
 
-    <h3>Sales Order Management</h3>
-    <a href="{{ url_for('sales.sales_entry') }}">
-        Go to Sales Order Management
-    </a>
+            <div class="module">
+                <h3>GST Invoice Management</h3>
+                <a href="{{ url_for('invoices.invoice_management') }}">Manage GST Invoices</a>
+            </div>
 
-    <hr>
+            <div class="module">
+                <h3>Dispatch Management</h3>
+                <a href="{{ url_for('dispatch.dispatch_management') }}">Manage Dispatches</a>
+            </div>
 
-    <h3>Admin Sales Approval</h3>
-    <a href="{{ url_for('sales.admin_sales') }}">
-        Go to Admin Sales Approval
-    </a>
+            <div class="module">
+                <h3>Payment Management</h3>
+                <a href="{{ url_for('payments.payment_management') }}">Manage Payments</a>
+            </div>
 
-    <hr>
+            <div class="module">
+                <h3>Business Reports</h3>
+                <a href="{{ url_for('reports.reports_dashboard') }}">View Business Reports</a>
+            </div>
 
-    <h3>GST Invoice Management</h3>
-    <a href="{{ url_for('invoices.invoice_management') }}">
-        Go to GST Invoice Management
-    </a>
+        {% elif user.role.role_name == "Salesman" %}
 
-    <hr>
+            <div class="module">
+                <h3>Sales Order Management</h3>
+                <a href="{{ url_for('sales.sales_entry') }}">Create and View Sales Orders</a>
+            </div>
 
-    <h3>Dispatch Management</h3>
-    <a href="{{ url_for('dispatch.dispatch_management') }}">
-        Go to Dispatch Management
-    </a>
+        {% elif user.role.role_name == "Production Supervisor" %}
 
-    <hr>
+            <div class="module">
+                <h3>Production Management</h3>
+                <a href="{{ url_for('production.production_entry') }}">Manage Production</a>
+            </div>
 
-    <h3>Payment Management</h3>
-    <a href="{{ url_for('payments.payment_management') }}">
-        Go to Payment Management
-    </a>
+            <div class="module">
+                <h3>Inventory Management</h3>
+                <a href="{{ url_for('inventory.inventory_summary') }}">View Inventory and Stock Ledger</a>
+            </div>
 
-    <hr>
+        {% elif user.role.role_name == "Accountant" %}
 
-    <h3>Business Reports</h3>
-    <a href="{{ url_for('reports.reports_dashboard') }}">
-        View Business Reports Dashboard
-    </a>
+            <div class="module">
+                <h3>GST Invoice Management</h3>
+                <a href="{{ url_for('invoices.invoice_management') }}">View and Manage Invoices</a>
+            </div>
+
+            <div class="module">
+                <h3>Payment Management</h3>
+                <a href="{{ url_for('payments.payment_management') }}">Manage Payments</a>
+            </div>
+
+            <div class="module">
+                <h3>Business Reports</h3>
+                <a href="{{ url_for('reports.reports_dashboard') }}">View Financial Reports</a>
+            </div>
+
+        {% elif user.role.role_name == "Owner" %}
+
+            <div class="module">
+                <h3>Business Dashboard</h3>
+                <a href="{{ url_for('reports.reports_dashboard') }}">View Overall Business Reports</a>
+            </div>
+
+        {% else %}
+
+            <div class="module">
+                <h3>Access Information</h3>
+                <p>No dashboard modules are assigned to this role.</p>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
 
 </body>
 </html>

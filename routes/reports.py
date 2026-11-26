@@ -16,6 +16,7 @@ def reports_access():
     if not (
         current_user.has_role("Admin")
         or current_user.has_role("Accountant")
+        or current_user.has_role("Owner")
     ):
         abort(403)
 
@@ -209,10 +210,7 @@ def sales_register():
 
     where_clause = " AND ".join(conditions)
 
-    # -------------------------------------------------
     # 1. DETAILED SALES REGISTER
-    # -------------------------------------------------
-
     sales_rows = db.session.execute(text(f"""
         SELECT
             inv.invoice_number,
@@ -236,10 +234,7 @@ def sales_register():
         ORDER BY inv.invoice_date DESC, inv.id DESC
     """), params).mappings().all()
 
-    # -------------------------------------------------
     # 2. SALES AND GST TOTALS
-    # -------------------------------------------------
-
     totals = db.session.execute(text(f"""
         SELECT
             COUNT(*) AS invoice_count,
@@ -299,7 +294,9 @@ def sales_register():
         start_date=start_date,
         end_date=end_date
     )
-    # =====================================================
+
+
+# =====================================================
 # STEP 10.3 - STOCK SUMMARY AND STOCK LEDGER REPORT
 # =====================================================
 
@@ -467,6 +464,7 @@ def stock_report():
         start_date=start_date,
         end_date=end_date
     )
+
 
 # =====================================================
 # STEP 10.4 - PRODUCTION VARIANCE AND COSTING REPORT

@@ -1,5 +1,5 @@
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from sqlalchemy import text
 from extensions import db
@@ -10,10 +10,20 @@ from uuid import uuid4
 production = Blueprint("production", __name__)
 
 
+def check_production_access():
+    if not (
+        current_user.has_role("Admin")
+        or current_user.has_role("Production Supervisor")
+    ):
+        abort(403)
+
+
 # 1. Production Management Page
 @production.route("/production")
 @login_required
 def production_entry():
+
+    check_production_access()
 
     products = db.session.execute(
         text("""
@@ -63,6 +73,8 @@ def production_entry():
 @production.route("/production/record", methods=["POST"])
 @login_required
 def record_production():
+
+    check_production_access()
 
     try:
         product_id = int(request.form["product_id"])
